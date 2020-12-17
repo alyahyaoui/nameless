@@ -17,31 +17,33 @@ const resolvers = {
     Query: { test: () => 'test is done' },
 };
 const server = new ApolloServer({ typeDefs, resolvers });
-const posts = [];
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 server.applyMiddleware({ app });
-/**
- * sending the index.html file when getting request from the root route
- */
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/index.html'));
+
+const postSchema = new mongoose.Schema({
+    title: String,
+    body: String,
 });
-/**
- * creating an object based upon the values returned from the compose inputs
- *  and adding it to the "posts" array"
- */
-app.post('/', (req, res) => {
-    const post = {
-        title: req.body.articleTitle,
-        body: req.body.articleBody,
-    };
-    posts.push(post);
-    console.log(posts);
-    res.redirect('/');
-});
+const Post = mongoose.model('Post', postSchema);
+
+app.route('/')
+    .get((req, res) => res.sendFile(path.resolve(__dirname, '/index.html')))
+
+    .post((req, res) => {
+        const post = new Post({
+            title: req.body.articleTitle,
+            body: req.body.articleBody,
+        });
+
+        post.save();
+        res.redirect('/');
+    });
+// eslint-disable-next-line array-callback-return
+Post.find((err, posts) => posts.forEach((post) => console.log(post.title)));
+
 mongoose
     .connect(process.env.DB, {
         useNewUrlParser: true,
