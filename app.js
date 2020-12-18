@@ -9,12 +9,12 @@ require('dotenv').config();
 
 const app = express();
 const typeDefs = gql`
-    type Query {
-        test: String!
-    }
+  type Query {
+    test: String!
+  }
 `;
 const resolvers = {
-    Query: { test: () => 'test is done' },
+  Query: { test: () => 'test is done' },
 };
 const server = new ApolloServer({ typeDefs, resolvers });
 
@@ -24,35 +24,36 @@ app.set('view engine', 'ejs');
 server.applyMiddleware({ app });
 
 const postSchema = new mongoose.Schema({
-    title: String,
-    body: String,
+  title: String,
+  body: String,
 });
 const Post = mongoose.model('Post', postSchema);
 
-app.route('/')
-    .get((req, res) => res.sendFile(path.resolve(__dirname, '/index.html')))
+app
+  .route('/')
+  .get((req, res) => res.sendFile(path.resolve(__dirname, '/index.html')))
 
-    .post((req, res) => {
-        const post = new Post({
-            title: req.body.articleTitle,
-            body: req.body.articleBody,
-        });
-
-        post.save();
-        res.redirect('/');
+  .post((req, res) => {
+    const post = new Post({
+      title: req.body.articleTitle,
+      body: req.body.articleBody,
     });
+
+    post.save();
+    res.redirect('/');
+  });
 // eslint-disable-next-line array-callback-return
 Post.find((err, posts) => posts.forEach((post) => console.log(post.title)));
 
 mongoose
-    .connect(process.env.DB, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    .then(() => {
-        console.log('mongodb connected');
+  .connect(process.env.DB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log('mongodb connected');
 
-        app.listen(process.env.PORT, () =>
-            console.log(`http://localhost:3000${server.graphqlPath}`)
-        );
-    });
+    app.listen(process.env.PORT, () =>
+      console.log(`http://localhost:3000${server.graphqlPath}`)
+    );
+  });
